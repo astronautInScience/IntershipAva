@@ -1,10 +1,10 @@
 from gpiozero import DigitalOutputDevice, DigitalInputDevice
 from time import sleep, time
 
-# =========================================================
-# 1) DEFINE PI PINS  (BCM numbering, not physical pin number)
-# =========================================================
-# Motor 1 (X axis) -> microstep driver inputs
+
+# 1) DEFINE PI PINS  
+
+# Motor 1 (X axis) 
 M1_STEP = 18
 M1_DIR  = 23
 M1_ENA  = 24
@@ -15,12 +15,12 @@ M2_DIR  = 6
 M2_ENA  = 13
 
 # TTL inputs
-START_TTL_IN = 17   # optic trigger -> START scan (must be 3.3V safe!)
-STOP_TTL_IN  = 27   # stop trigger -> ABORT scan
-
+voltage_TTL = 5   # idk if pin 1, 3.3V work safe!
+#gnd_TTL  = 20    # physical pin 20
+trig_TTL = 25
 
 # =========================================================
-# 2) SCAN INPUTS (your task parameters)
+# 2) SCAN INPUTS 
 # =========================================================
 WIDTH_MM  = 20   # X scan size
 HEIGHT_MM = 10   # Y scan size
