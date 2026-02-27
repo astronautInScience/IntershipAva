@@ -4,7 +4,7 @@ import time
 M1_STEP, M1_DIR, M1_ENA = 18, 23, 24
 
 ENABLE_ACTIVE_LOW = True   # flip to False if nothing happens
-STEP_FREQ_HZ = 200         # slow
+STEP_FREQ_HZ = 800        # slow
 PULSE_US = 20
 
 def ena_level(enable: bool) -> int:
