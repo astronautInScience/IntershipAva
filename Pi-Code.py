@@ -22,20 +22,19 @@ class PinConfig:
     m1_step: int = 18
     m1_dir: int = 23
     m1_ena: int = 24
-    
+
     # Motor 2 (Y axis)
     m2_step: int = 5
     m2_dir: int = 6
     m2_ena: int = 13
-    
-    # TTL inputs (external trigger signals)
-    start_ttl_in: int = 25  # Start scan trigger pin 4 in wire
-    #stop_ttl_in: int = 20   # Abort scan trigger
-    
-    # Optional TTL output (spectrometer trigger)
-    #trig_out: Optional[int] = 24
-    
-    # Enable polarity: True if ULN2803A driver pulls low to enable
+
+    # TTL inputs
+    start_ttl_in: int = 25
+    stop_ttl_in: Optional[int] = 20      # <-- put it back (or set None)
+
+    # Optional TTL output
+    trig_out: Optional[int] = None       # <-- define it (or set a GPIO number)
+
     ena_active_low: bool = True
 
 
@@ -273,11 +272,10 @@ def append_csv(row: Dict, filename: str = "scan_results.csv") -> None:
 # 6) RASTER SCAN LOGIC
 # =========================================================
 
-def raster_scan(stage: XYStage,
-               start_in: DigitalInputDevice,
-               stop_in: DigitalInputDevice,
-               scan_cfg: ScanConfig,
-               trig_out: Optional[DigitalOutputDevice] = None) -> bool:
+def raster_scan(stage, start_in, stop_in, scan_cfg, trig_out=None) -> bool:
+    print("Waiting for START signal (TTL)...")
+    start_in.wait_for_active()
+    
     """
     Execute 2D raster scan in serpentine pattern.
     
@@ -384,10 +382,11 @@ def main():
     print(f"Speed:  {scan.speed_steps_per_sec} steps/sec\n")
     
     # Initialize GPIO devices
-    start_in = DigitalInputDevice(pins.start_ttl_in, pull_down=True)
-    stop_in = DigitalInputDevice(pins.stop_ttl_in, pull_down=True)
-    trig_out = (DigitalOutputDevice(pins.trig_out, initial_value=False) 
-                if pins.trig_out is not None else None)
+   start_in = DigitalInputDevice(pins.start_ttl_in, pull_up=False, active_state=True)
+   stop_in = (DigitalInputDevice(pins.stop_ttl_in, pull_up=False, active_state=True)
+           if pins.stop_ttl_in is not None else None)
+   trig_out = (DigitalOutputDevice(pins.trig_out, initial_value=False)
+            if pins.trig_out is not None else None)
     
     # Initialize stepper drivers
     mx = StepperDriver(pins.m1_step, pins.m1_dir, pins.m1_ena, 
