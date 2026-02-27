@@ -2,7 +2,10 @@ import RPi.GPIO as GPIO
 import time
 
 M1_STEP, M1_DIR, M1_ENA = 18, 23, 24
-
+# Motor Y
+M2_STEP = 5
+M2_DIR  = 6
+M2_ENA  = 13   # set to None if you don't use ENA
 ENABLE_ACTIVE_LOW = True   # flip to False if nothing happens
 STEP_FREQ_HZ = 800        
 PULSE_US = 20
