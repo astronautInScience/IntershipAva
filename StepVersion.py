@@ -1,9 +1,9 @@
 import RPi.GPIO as GPIO
 import time
 
-# =========================
+
 # PIN MAPPING (BCM)
-# =========================
+
 M1_STEP, M1_DIR = 18, 23   # X
 M2_STEP, M2_DIR = 5, 6     # Y
 
