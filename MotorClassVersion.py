@@ -48,8 +48,8 @@ Y_POSITIVE_DIR = 1  # +Y means stage moves up
 RECTANGLE_PATH_CM = [
     ("X +5 cm (right)", "x", +5.0),
     ("Y +35 cm (up)", "y", +35.0),
-    #("X -5 cm (left)", "x", -5.0),
-    #("Y -35 cm (down)", "y", -35.0),
+    ("X -5 cm (left)", "x", -5.0),
+    ("Y -35 cm (down)", "y", -35.0),
 ]
 
 
@@ -158,7 +158,7 @@ def main() -> None:
             "  sudo systemctl enable --now pigpiod"
         )
 
-    """x_axis = StepperAxis(
+    x_axis = StepperAxis(
         pi,
         AxisConfig(
             name="X",
@@ -168,7 +168,7 @@ def main() -> None:
             positive_dir=X_POSITIVE_DIR,
         ),
     )
-    """
+    
     y_axis = StepperAxis(
         pi,
         AxisConfig(
