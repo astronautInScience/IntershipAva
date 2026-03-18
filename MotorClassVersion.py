@@ -37,7 +37,7 @@ X_STEPS_PER_CM = (MOTOR_FULL_STEPS_PER_REV * MICROSTEP * 10.0) / X_MM_PER_REV
 Y_STEPS_PER_CM = (MOTOR_FULL_STEPS_PER_REV * MICROSTEP * 10.0) / Y_MM_PER_REV
 
 # If one axis moves opposite of expected, flip 1 <-> 0.
-X_POSITIVE_DIR = 1  # +X means stage moves right
+X_POSITIVE_DIR = 0  # +X means stage moves right
 Y_POSITIVE_DIR = 1  # +Y means stage moves up
 
 # Requested rectangle:
@@ -48,8 +48,8 @@ Y_POSITIVE_DIR = 1  # +Y means stage moves up
 RECTANGLE_PATH_CM = [
     ("X +5 cm (right)", "x", +5.0),
     ("Y +35 cm (up)", "y", +35.0),
-    ("X -5 cm (left)", "x", -5.0),
-    ("Y -35 cm (down)", "y", -35.0),
+    #("X -5 cm (left)", "x", -5.0),
+    #("Y -35 cm (down)", "y", -35.0),
 ]
 
 
@@ -158,7 +158,7 @@ def main() -> None:
             "  sudo systemctl enable --now pigpiod"
         )
 
-    x_axis = StepperAxis(
+    """x_axis = StepperAxis(
         pi,
         AxisConfig(
             name="X",
@@ -168,6 +168,7 @@ def main() -> None:
             positive_dir=X_POSITIVE_DIR,
         ),
     )
+    """
     y_axis = StepperAxis(
         pi,
         AxisConfig(
