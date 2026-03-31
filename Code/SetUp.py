@@ -8,47 +8,66 @@ TRIGGER_INPUT_PIN = 17
 STEP_PIN = 18
 DIR_PIN = 23
 
+# -----------------------------
+# Logic settings for ULN2803A
+# -----------------------------
+INVERT_STEP = True
+INVERT_DIR = True
 
 # -----------------------------
 # Timing settings
 # -----------------------------
 TRIGGER_TO_MOVE_DELAY = 1.0   # seconds after trigger before movement
 DIR_SETUP_TIME = 0.02         # seconds after setting direction before stepping
-STEP_PULSE_TIME = 0.01        # seconds
+STEP_PULSE_TIME = 0.001       # start with same value as working code
 
 # -----------------------------
 # Calibration / movement settings
 # -----------------------------
 STEPS_PER_10MM = 2000
 STEPS_PER_MM = STEPS_PER_10MM / 10.0   # 200 steps/mm
-CHUNK_MM = 10.0               # how much to move each trigger (10 mm)
-TOTAL_DISTANCE_MM = 40.0      # total distance before stopping
+
+CHUNK_MM = 10.0
+TOTAL_DISTANCE_MM = 40.0
 CHUNK_STEPS = int(CHUNK_MM * STEPS_PER_MM)
 
 # Direction:
-# 1 = right
-# 0 = left
-DIRECTION = 1
+# True = one direction
+# False = opposite direction
+DIRECTION = False
+
+
+def out(pin, logical_level, invert=False):
+    physical_level = not logical_level if invert else logical_level
+    GPIO.output(pin, GPIO.HIGH if physical_level else GPIO.LOW)
 
 
 def setup_gpio():
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
+
     GPIO.setup(TRIGGER_INPUT_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
     GPIO.setup(STEP_PIN, GPIO.OUT)
     GPIO.setup(DIR_PIN, GPIO.OUT)
-    GPIO.output(STEP_PIN, GPIO.LOW)
-    GPIO.output(DIR_PIN, GPIO.LOW)
+
+    # idle states
+    out(STEP_PIN, False, INVERT_STEP)
+    out(DIR_PIN, DIRECTION, INVERT_DIR)
+
+
+def step_once():
+    out(STEP_PIN, True, INVERT_STEP)
+    time.sleep(STEP_PULSE_TIME)
+    out(STEP_PIN, False, INVERT_STEP)
+    time.sleep(STEP_PULSE_TIME)
 
 
 def move_steps(direction, steps):
-    GPIO.output(DIR_PIN, direction)
+    out(DIR_PIN, direction, INVERT_DIR)
     time.sleep(DIR_SETUP_TIME)
+
     for _ in range(steps):
-        GPIO.output(STEP_PIN, GPIO.HIGH)
-        time.sleep(STEP_PULSE_TIME)
-        GPIO.output(STEP_PIN, GPIO.LOW)
-        time.sleep(STEP_PULSE_TIME)
+        step_once()
 
 
 def main():
@@ -57,12 +76,11 @@ def main():
 
     moved_distance = 0.0
 
-    # After each trigger the stage moves 10 mm to the right, then stops and
-    # waits for the next trigger. This loop continues until 40 mm total is reached.
     try:
         while moved_distance < TOTAL_DISTANCE_MM:
-            GPIO.wait_for_edge(TRIGGER_INPUT_PIN, GPIO.RISING)
+            GPIO.wait_for_edge(TRIGGER_INPUT_PIN, GPIO.RISING, bouncetime=50)
             print("Trigger received")
+
             time.sleep(TRIGGER_TO_MOVE_DELAY)
 
             move_steps(DIRECTION, CHUNK_STEPS)
