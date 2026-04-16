@@ -5,11 +5,18 @@ import time
 # User settings
 # -----------------------------
 TRIGGER_INPUT_PIN = 4
-STEP_PIN = 18
-DIR_PIN = 19
+
+# Driver 1
+STEP1_PIN = 18
+DIR1_PIN = 19
+
+# Driver 2
+STEP2_PIN = 25
+DIR2_PIN = 26
 
 # -----------------------------
-# Logic settings for ULN2803A
+# Logic settings for driver input stage
+# Change these if your driver logic is reversed
 # -----------------------------
 INVERT_STEP = True
 INVERT_DIR = True
@@ -19,7 +26,7 @@ INVERT_DIR = True
 # -----------------------------
 TRIGGER_TO_MOVE_DELAY = 1.0   # seconds after trigger before movement
 DIR_SETUP_TIME = 0.02         # seconds after setting direction before stepping
-STEP_PULSE_TIME = 0.001       # seconds
+STEP_PULSE_TIME = 0.001       # seconds HIGH and seconds LOW
 
 # -----------------------------
 # Calibration / movement settings
@@ -43,39 +50,57 @@ def out(pin, logical_level, invert=False):
 
 
 def setup_gpio():
-    global trigger_pin, step_pin, dir_pin
+    global trigger_pin
+    global step1_pin, dir1_pin
+    global step2_pin, dir2_pin
 
     trigger_pin = Pin(TRIGGER_INPUT_PIN, Pin.IN, Pin.PULL_DOWN)
-    step_pin = Pin(STEP_PIN, Pin.OUT)
-    dir_pin = Pin(DIR_PIN, Pin.OUT)
 
-    # idle states
-    out(step_pin, False, INVERT_STEP)
-    out(dir_pin, DIRECTION, INVERT_DIR)
+    step1_pin = Pin(STEP1_PIN, Pin.OUT)
+    dir1_pin = Pin(DIR1_PIN, Pin.OUT)
+
+    step2_pin = Pin(STEP2_PIN, Pin.OUT)
+    dir2_pin = Pin(DIR2_PIN, Pin.OUT)
+
+    # Idle states
+    out(step1_pin, False, INVERT_STEP)
+    out(step2_pin, False, INVERT_STEP)
+
+    out(dir1_pin, DIRECTION, INVERT_DIR)
+    out(dir2_pin, DIRECTION, INVERT_DIR)
 
 
-def step_once():
-    out(step_pin, True, INVERT_STEP)
+def step_once_both():
+    # STEP HIGH
+    out(step1_pin, True, INVERT_STEP)
+    out(step2_pin, True, INVERT_STEP)
     time.sleep(STEP_PULSE_TIME)
-    out(step_pin, False, INVERT_STEP)
+
+    # STEP LOW
+    out(step1_pin, False, INVERT_STEP)
+    out(step2_pin, False, INVERT_STEP)
     time.sleep(STEP_PULSE_TIME)
 
 
-def move_steps(direction, steps):
-    out(dir_pin, direction, INVERT_DIR)
+def move_steps_both(direction, steps):
+    out(dir1_pin, direction, INVERT_DIR)
+    out(dir2_pin, direction, INVERT_DIR)
     time.sleep(DIR_SETUP_TIME)
 
     for _ in range(steps):
-        step_once()
+        step_once_both()
 
 
 def wait_for_rising_edge(pin):
     previous = pin.value()
+
     while True:
         current = pin.value()
+
         if previous == 0 and current == 1:
-            time.sleep_ms(50)  # debounce
+            time.sleep_ms(50)   # debounce
             return
+
         previous = current
         time.sleep_ms(1)
 
@@ -93,7 +118,7 @@ def main():
 
             time.sleep(TRIGGER_TO_MOVE_DELAY)
 
-            move_steps(DIRECTION, CHUNK_STEPS)
+            move_steps_both(DIRECTION, CHUNK_STEPS)
             moved_distance += CHUNK_MM
 
             print("Movement completed: {} mm".format(CHUNK_MM))
@@ -103,6 +128,11 @@ def main():
 
     except KeyboardInterrupt:
         print("Program stopped by user")
+
+    finally:
+        # Put outputs back to idle
+        out(step1_pin, False, INVERT_STEP)
+        out(step2_pin, False, INVERT_STEP)
 
 
 if __name__ == "__main__":
